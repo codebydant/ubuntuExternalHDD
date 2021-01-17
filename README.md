@@ -40,39 +40,141 @@ With the external drive all prepared, we now need to make a couple of notes, spe
 
 We’re now almost ready to install Ubuntu on this drive. Note first however, that in two attempts at this process, the system volume of the computer I was using for this process (my Windows 10 computer) was modified and left with a dual boot installation, which is NOT what we want (as that would effectively ‘bind’ our external hard drive to this computer). When we install Ubuntu on an external HDD is very important to change the installation of the bootloader to the USB HD. This will most likely be /dev/sdb. This will prevent you from overwriting the master boot record on your hard drive. The remaining steps will show how to correctly install a working GRUB bootloader onto our newly created /dev/sdb1 system fat32 ESP partition.
 
-## Configure external HDD
-With your external target drive all prepared we’re now ready to install Ubuntu 19.10. As per the link in the previous section, we’re going to start a normal installation followed by ‘Something else’ when we get to the partition selection step. You should still be booted from your Ubuntu Installation media thumb drive.
+## Configure external HDD/install ubuntu
+With your external target drive all prepared we’re now ready to install Ubuntu. As per the link in the previous section, we’re going to start a normal installation followed by ‘Something else’ when we get to the partition selection step. You should still be booted from your Ubuntu Installation media thumb drive.
 
-Close GParted and then double click on the Install Ubuntu 19.10 icon on your desktop. Choose your language settings, and optionally install third-party drivers. On the next screen, for ‘Installation Type’ - choose the last option ‘Something else’ before proceeding.
+Close GParted and then double click on the Install Ubuntu icon on your desktop. Choose your language settings, and optionally install third-party drivers. On the next screen, for ‘Installation Type’ - choose the last option ‘Something else’ before proceeding.
 
 ![3](https://github.com/danielTobon43/ubuntuExternalHDD/blob/master/examples/ubuntu-installation-01.png?raw=true)
 
 Now that we’re on the ‘Something else’ installation type screen - scroll down the list of available drive volumes until you see your device and the partitions we previously created. In this example /dev/sdb1, /dev/sdb2, and /dev/sdb3.
 
-1.	Double click on the 100MB fat32 system efi partition we created (/dev/sdb1)and choose ‘Use as EFI system partition’ but do not format the partition.
+1.	Double click on the 100MB fat32 system efi partition we created (/dev/sdb1) and choose ‘Use as EFI system partition’ but do not format the partition.
 
 2.	Double click on the /dev/sdb2 partition and choose ‘Use as swap area’.
 
 3.	Then double click on the /dev/sdb3 partition - and choose use as 'Ext4 journaling file system’, and set the mount point to / or root, and again do not format this partition.
 
 4.	Lastly - select the ‘Device for boot loader installations:’ to the name of the device for your external hard drive (although as noted above, this may not work and you’ll need to follow the remaining steps below). 
+
 Your settings should look like the following:
 
 ![4](https://github.com/danielTobon43/ubuntuExternalHDD/blob/master/examples/ubuntu-installation-02.png?raw=true)
 
-Go ahead now and install Ubuntu 19.10 to your external drive - setting your timezone, and user account information as you would with a normal Ubuntu installation.
-
-## Install ubuntu into external HDD
-Go ahead now and install Ubuntu 19.10 to your external drive - setting your timezone, and user account information as you would with a normal Ubuntu installation.
+Go ahead now and install Ubuntu to your external drive - setting your timezone, and user account information as you would with a normal Ubuntu installation. After the installation is completed, do not remove the external HDD from the USB port.
 
 
 ## Install grub onto the ESP partition
-As previously mentioned, the Ubuntu 19.10 installation process will likely have created a ‘dual boot’ installation by modifying your host computer's main EFI / ESP partition, effectively ‘binding’ your external drive to this computer. If so, there are two remaining tasks.
+As previously mentioned, the Ubuntu installation process will likely have created a ‘dual boot’ installation by modifying your host computer's main EFI/ESP partition, effectively ‘binding’ your external drive to this computer. 
 
-First, we need to correctly install the Grub bootloader onto the boot partition of our external portable drive - turning it into a truly portable installation.
+1.	First, we need to correctly install the Grub bootloader onto the boot partition of our external portable drive - turning it into a truly portable installation.
 
-The second and last step will be to remove the ‘dual boot’ configuration from the computer you are using to create this new external and portable drive. You can check to see if any of this applies to you by rebooting your computer WITH the new external drive plugged in - but selecting your computers primary disk (not the external disk) to boot from. If you see a ‘dual boot’ Grub option screen - then everything that follows applies.
+2.	The second and last step will be to remove the ‘dual boot’ configuration from the computer you are using to create this new external and portable drive. 
 
-Make sure you’re now booted from the Ubuntu installation thumb drive (in the ‘Try Ubuntu mode), and start the ‘Terminal’ application.
+Make sure you’re now booted from the Ubuntu installation thumb drive (in the ‘Try Ubuntu mode), leave your external HDD drive to the PC connected and start the ‘Terminal’ application.
 
-First we’re going to unmount the media volume of the thumb drive (leaving ‘Try Now’ Ubuntu running in memory only). Replace the 'uuid of your media' text below with the uuid in your system. There should be only one under media/ubuntu.
+First we’re going to unmount the HDD external drive volume (leaving ‘Try Now’ Ubuntu running in memory only). Replace the 'uuid of your external HDD media' text below with the uuid in your system. There should be only one under media/ubuntu.
+
+```
+sudo umount /media/ubuntu/<the uuid of your media>
+```
+
+type the TAB key in your keyboard to autocomplete the command above or find your UUID with the following command to compare with the one in the previous steps:
+
+```
+ls -l /dev/disk/by-uuid
+```
+
+The number above should be the same with the one in the UUID from the /dev/sdc3 ext4.
+Now we’ll mount our new Ubuntu installation root volume from our external drive:
+
+```
+sudo mount /dev/sdb3 /mnt
+```
+
+We now need to fixup the UUIDs of the mount points in fstab for our external Ubuntu installation using the UUIDs we made a note of earlier:
+
+```
+sudo gedit /mnt/etc/fstab
+```
+
+Copy and then comment the line with the /boot/efi mount point. In your new line replace the current UUID with the one from above - in this case ED3C-7CB8
+
+The swap and root /mount points should be pointed to the correct volumes on our external drive.  Save and close the file
+
+Now we need to mount our new EFI/ESP system partition - our 100MB fat32 partition on /dev/sdb1
+
+```
+sudo mount /dev/sdb1 /mnt/boot/efi
+```
+
+We now need to create some special system process mount points in our ‘simulated’ Ubuntu system, so that we can chroot into this volume and install Grub from the Ubuntu installation of our external drive itself (it must be installed using the same OS as the loader will target at boot).
+
+```
+sudo mount -B /dev /mnt/dev
+sudo mount -B /dev/pts /mnt/dev/pts
+sudo mount -B /proc /mnt/proc 
+sudo mount -B /sys /mnt/sys
+```
+
+Next we’ll copy over our current DNS settings just in case we need network access...
+
+```
+sudo cp /etc/resolv.conf /mnt/etc/
+```
+
+Next we load efivars. The modprobe efivars command loads the efivars kernel module, which gives the kernel access to EFI variables stored in NVRAM.
+
+```
+modprobe efivars
+```
+
+Finally we’ll switch into a chroot environment in our simulated OS on the external hard drive…
+
+```
+sudo chroot /mnt
+```
+
+And now after all that, we're ready to install Grub. As with all of the instructions above, be sure to change /dev/sdb with your own external drive device identifier.
+
+```
+grub-install -d /usr/lib/grub/x86_64-efi --efi-directory=/boot/efi/ --removable /dev/sdb
+```
+
+Your new external drive should now be bootable in any machine.
+
+## Clean up the dual boot configuration
+This step is based in the post from "How To Remove GRUB for Windows 10 Bootloader" at https://www.binaryera.com/2020/08/RemoveGrubFromWindow10.html.
+
+1.	Open a cmd in your windows with admin permission
+2.	`diskpart`
+3.	`list vol`
+4.	select volume FAT32, `Select Volume X`
+5.	`Assign Letter=Z`
+6.	`exit`
+7.	`Z:`
+8.	`dir`
+9.	`cd EFI`
+10.	`dir`
+11.	`rmdir /s OSNAME`, could be "ubuntu" in this case
+
+## Update EFI/Boot in the external HDD
+Once all the previous steps are done, we need to set the bootx64.efi file in the external HDD. This will allow that your external disk should be bootable on most EFI-based computers of the same architecture as the original computer. The solution is taken from: https://askubuntu.com/a/615865
+
+1.	Conect your external HDD to any USB port, turn on you PC, select in boot-menu ubuntu OS manager from the external HDD. This will load ubuntu. 
+2.	Once we have ubuntu initialized, open a terminal and mount the sdb1 partition:
+
+```
+sudo mount /dev/sdb1 
+```
+
+3.	Open nautilus in to get admin access to any folder.
+
+```
+sudo nautilus
+```
+
+4.	Go to the EFI folder from your external HDD drive, normally mounted at /boot/efi in Ubuntu. You should see 2 folders: 1. BOOT, 2. ubuntu.
+
+The most straightforward solution is to move/rename your boot loader. Ubuntu installs its boot loader as EFI/ubuntu/shimx64.efi and EFI/ubuntu/grubx64.efi on the ESP, which is normally mounted at /boot/efi in Ubuntu. Rename EFI/ubuntu on the ESP to EFI/BOOT on the ESP (in case there is not a BOOT folder). You must then rename shimx64.efi to bootx64.efi. (If your system does not use Secure Boot, you may optionally rename grubx64.efi to bootx64.efi instead of renaming shimx64.efi.). close nautilus and all will be done.
+
