@@ -20,7 +20,9 @@ For this tutorial we need 2 things:
 
 ## Getting Started
 1.	Boot your computer using the thumb drive prepared above, and choose ‘Try  Ubuntu’.
+
 2.	Plug in your target portable external hard drive.
+
 3.	Start GParted. GParted is the partition manager application we’re going to use to prepare the portable hard drive. Once GParted is started - in the upper right corner, change the target drive to your external portable drive. It’s important that you correctly identify this drive as we’re going to re-partition the drive. In the screenshot below - my external and portable drive is identified as */dev/sdb* - and it is currently unpartitioned. Unmount *(right click and unmount)* any currently mounted partitions on this drive and delete all partitions (again - be double sure you’re working on the correct drive).
 
 ![Start GParted](https://github.com/danielTobon43/ubuntuExternalHDD/blob/master/examples/gparted-01.png?raw=true)
@@ -143,7 +145,32 @@ grub-install -d /usr/lib/grub/x86_64-efi --efi-directory=/boot/efi/ --removable 
 
 Your new external drive should now be bootable in any machine.
 
-## Clean up the dual boot configuration
+## Update EFI/Boot in the external HDD
+Once all the previous steps are done, we need to set the bootx64.efi file in the external HDD. This will allow that your external disk should be bootable on most EFI-based computers of the same architecture as the original computer. The solution is taken from: https://askubuntu.com/a/615865
+
+1.	Connect your external HDD to any USB port, turn on your PC, select in the boot-menu: ubuntu OS manager from the external HDD. This will load ubuntu. 
+
+2.	Once we have ubuntu initialized, open a terminal and mount the sdb1 partition. This is the partition where we defined the EFI boot partition:
+
+```
+sudo mount /dev/sdb1 
+```
+
+3.	Open nautilus in a terminal to get admin access to any folder.
+
+```
+sudo nautilus
+```
+
+4.	Go to the EFI folder from your external HDD drive, normally mounted at /boot/efi in Ubuntu. You should see 2 folders: 1. BOOT, 2. ubuntu.
+
+The most straightforward solution is to move/rename your boot loader. Ubuntu installs its boot loader as EFI/ubuntu/shimx64.efi and EFI/ubuntu/grubx64.efi on the ESP, which is normally mounted at /boot/efi in Ubuntu. 
+
+5.	Rename **EFI/ubuntu** to **EFI/BOOT** (in case there is not a BOOT folder). You must then rename **shimx64.efi** to **bootx64.efi**. (If your system does not use Secure Boot, you may optionally rename grubx64.efi to bootx64.efi instead of renaming shimx64.efi.)
+
+6.	Close nautilus and all will be done.
+
+## Clean up the dual boot configuration Windows
 This step is based in the post from "How To Remove GRUB for Windows 10 Bootloader" at https://www.binaryera.com/2020/08/RemoveGrubFromWindow10.html.
 
 1.	Open a cmd in your windows with admin permission
@@ -157,24 +184,4 @@ This step is based in the post from "How To Remove GRUB for Windows 10 Bootloade
 9.	`cd EFI`
 10.	`dir`
 11.	`rmdir /s OSNAME`, could be "ubuntu" in this case
-
-## Update EFI/Boot in the external HDD
-Once all the previous steps are done, we need to set the bootx64.efi file in the external HDD. This will allow that your external disk should be bootable on most EFI-based computers of the same architecture as the original computer. The solution is taken from: https://askubuntu.com/a/615865
-
-1.	Conect your external HDD to any USB port, turn on you PC, select in boot-menu ubuntu OS manager from the external HDD. This will load ubuntu. 
-2.	Once we have ubuntu initialized, open a terminal and mount the sdb1 partition:
-
-```
-sudo mount /dev/sdb1 
-```
-
-3.	Open nautilus in to get admin access to any folder.
-
-```
-sudo nautilus
-```
-
-4.	Go to the EFI folder from your external HDD drive, normally mounted at /boot/efi in Ubuntu. You should see 2 folders: 1. BOOT, 2. ubuntu.
-
-The most straightforward solution is to move/rename your boot loader. Ubuntu installs its boot loader as EFI/ubuntu/shimx64.efi and EFI/ubuntu/grubx64.efi on the ESP, which is normally mounted at /boot/efi in Ubuntu. Rename EFI/ubuntu on the ESP to EFI/BOOT on the ESP (in case there is not a BOOT folder). You must then rename shimx64.efi to bootx64.efi. (If your system does not use Secure Boot, you may optionally rename grubx64.efi to bootx64.efi instead of renaming shimx64.efi.). close nautilus and all will be done.
 
