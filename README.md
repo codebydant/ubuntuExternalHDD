@@ -38,7 +38,18 @@ We’re going to create three new partitions on the target external drive.
 
 ![My final partition arrangement on the external hard drive](https://github.com/danielTobon43/ubuntuExternalHDD/blob/master/examples/gparted-02.png?raw=true)
 
-With the external drive all prepared, we now need to make a couple of notes, specifically -  note the device and partition numbers. In this example my external drive is identified as /dev/sdb with partitions located on /dev/sdb1 (fat32 system/boot), /dev/sdb2 (linux-swap), /dev/sdb3 (ext4 root volume). We also need to record the UUIDs of the system and root volumes for this drive. Double click on the fat32 system partition at /dev/sdb1, and from the ‘Information about’ screen that pops up - make a note of the UUID. In my case: ED3C-7CB8. Now do the same for the root volume - the ext4 partition on /dev/sdb3 - double click on the partition and note the UUID. In my case: dd8eed75-c315-420f-b208-92301cfbf300.
+With the external drive all prepared, we now need to make a couple of notes, specifically -  note the device and partition numbers. In this example my external drive is identified as /dev/sdb with partitions located on /dev/sdb1 (fat32 system/boot), /dev/sdb2 (linux-swap), /dev/sdb3 (ext4 root volume). We also need to record the UUIDs of the system and root volumes for this drive. Double click on the fat32 system partition at /dev/sdb1, and from the ‘Information about’ screen that pops up - make a note of the UUID. 
+
+In my case: sdb1 UUID = 7861-4419. 
+![7](https://github.com/danielTobon43/ubuntuExternalHDD/blob/master/examples/ubuntu-installation-03.png?raw=true)
+
+Now do the same for the, swap-linux and root volume - the ext4 partition on /dev/sdb3 - double click on the partition and note the UUID. 
+
+In my case: sdb2 UUID = d62d869a-4455-4b6c-8630-ad99041f6ecc.
+![8](https://github.com/danielTobon43/ubuntuExternalHDD/blob/master/examples/ubuntu-installation-04.png?raw=true)
+
+In my case: sdb3 UUID = 97b140e2-9794-4a49-aca6-7396a9c878d7.
+![9](https://github.com/danielTobon43/ubuntuExternalHDD/blob/master/examples/ubuntu-installation-05.png?raw=true)
 
 We’re now almost ready to install Ubuntu on this drive. Note first however, that in two attempts at this process, the system volume of the computer I was using for this process (my Windows 10 computer) was modified and left with a dual boot installation, which is NOT what we want (as that would effectively ‘bind’ our external hard drive to this computer). When we install Ubuntu on an external HDD is very important to change the installation of the bootloader to the USB HD. This will most likely be /dev/sdb. This will prevent you from overwriting the master boot record on your hard drive. The remaining steps will show how to correctly install a working GRUB bootloader onto our newly created /dev/sdb1 system fat32 ESP partition.
 
@@ -164,13 +175,15 @@ sudo nautilus
 
 4.	Go to the EFI folder from your external HDD drive, normally mounted at /boot/efi in Ubuntu. You should see 2 folders: 1. BOOT, 2. ubuntu.
 
+![10](https://github.com/danielTobon43/ubuntuExternalHDD/blob/master/examples/ubuntu-installation-06.png?raw=true)
+
 The most straightforward solution is to move/rename your boot loader. Ubuntu installs its boot loader as EFI/ubuntu/shimx64.efi and EFI/ubuntu/grubx64.efi on the ESP, which is normally mounted at /boot/efi in Ubuntu. 
 
 5.	Rename **EFI/ubuntu** to **EFI/BOOT** (in case there is not a BOOT folder). You must then rename **shimx64.efi** to **bootx64.efi**. (If your system does not use Secure Boot, you may optionally rename grubx64.efi to bootx64.efi instead of renaming shimx64.efi.)
 
 6.	Close nautilus and all will be done.
 
-## Clean up the dual boot configuration Windows
+## Clean up the dual boot configuration in Windows
 This step is based in the post from "How To Remove GRUB for Windows 10 Bootloader" at https://www.binaryera.com/2020/08/RemoveGrubFromWindow10.html.
 
 1.	Open a cmd in your windows with admin permission
