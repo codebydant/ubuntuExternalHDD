@@ -32,26 +32,33 @@ We’re going to create three new partitions on the target external drive.
 
 1.	Again using GParted, right click on the unallocated volume, choose New, and create a **100MB fat32** partition. Click on the green checkmark to apply the pending operation. Once the partition has been created - right click on the newly created partition and select ‘Manage Flags’. Enable the **boot** and **esp** flags. When we're done, this partition will become the system *‘boot’* partition, and will include EFI information including the GNU GRUB boot loader. In fact, creating this partition as a working boot volume under EFI using GRUB is the heart of our problem in trying to create a truly portable external OS drive, and so there are a few more steps to complete before we can achieve this.
 
-2.	Next create an XGB linux-swap partition, see [Linux DiskSpace](https://help.ubuntu.com/community/DiskSpace) for more information. The size of your swap partition may vary and so you’ll need to do a little research to determine the appropriate size for your expected workload. A rule of thumb for modern personal computers with plenty of RAM is to create a `swap partition = 2*the size of available RAM` if you do plan on supporting full hibernate (most computers will still suspend or sleep fine). For this tutorial, I have a 8GB RAM, so I chose `linux-swap partition=16GB+500MB` to be sure.
+2.	Next create an XGB linux-swap partition, see [Linux DiskSpace](https://help.ubuntu.com/community/DiskSpace) for more information. The size of your swap partition may vary and so you’ll need to do a little research to determine the appropriate size for your expected workload. A rule of thumb for modern personal computers with plenty of RAM is to create a `swap partition = 2*the size of available RAM` if you do plan on supporting full hibernate (most computers will still suspend or sleep fine). For this tutorial, I have a 8GB RAM, so I chose `linux-swap partition=17GB` to be sure.
 
-3.	Finally, create the main or root `/` partition for our target portable drive. Create an ext4 partition of whatever size you require for your system. Apply all pending operations and you should now have a disk partition layout that looks similar to the screenshot below. [Note that in my case I still have about 500GB unallocated space as this is a 1TB external drive. 
+3.	Finally, create the main or root `/` partition for our target portable drive. Create an ext4 partition of whatever size you require for your system. Apply all pending operations and you should now have a disk partition layout that looks similar to the screenshot below. [Note that in my case I still have about 15.89GB unallocated space as this is a 1TB external drive. 
 
 ![My final partition arrangement on the external hard drive](https://github.com/danielTobon43/ubuntuExternalHDD/blob/master/examples/gparted-02.png?raw=true)
 
-With the external drive all prepared, we now need to make a couple of notes, specifically -  note the device and partition numbers. In this example my external drive is identified as /dev/sdb with partitions located on /dev/sdb1 (fat32 system/boot), /dev/sdb2 (linux-swap), /dev/sdb3 (ext4 root volume). We also need to record the UUIDs of the system and root volumes for this drive. Double click on the fat32 system partition at /dev/sdb1, and from the ‘Information about’ screen that pops up - make a note of the UUID. 
+With the external drive all prepared, we now need to make a couple of notes, specifically -  note the device and partition numbers. In this example my external drive is identified as `/dev/sdb` with partitions located on:
+
+-	/dev/sdb1 (fat32 system/boot)
+-	/dev/sdb2 (linux-swap)
+-	/dev/sdb3 (ext4 root volume)
+-	unallocated space
+
+We also need to record the UUIDs of the system and root volumes for this drive. Double click on the fat32 system partition at `/dev/sdb1`, and from the ‘Information about’ screen that pops up - make a note of the UUID. 
 
 In my case: sdb1 UUID = 7861-4419. 
-![7](https://github.com/danielTobon43/ubuntuExternalHDD/blob/master/examples/ubuntu-installation-03.png?raw=true)
+![7](https://github.com/danielTobon43/ubuntuExternalHDD/blob/master/examples/gparted-03.png?raw=true)
 
 Now do the same for the, swap-linux and root volume - the ext4 partition on /dev/sdb3 - double click on the partition and note the UUID. 
 
 In my case: sdb2 UUID = d62d869a-4455-4b6c-8630-ad99041f6ecc.
-![8](https://github.com/danielTobon43/ubuntuExternalHDD/blob/master/examples/ubuntu-installation-04.png?raw=true)
+![8](https://github.com/danielTobon43/ubuntuExternalHDD/blob/master/examples/gparted-04.png?raw=true)
 
 In my case: sdb3 UUID = 97b140e2-9794-4a49-aca6-7396a9c878d7.
-![9](https://github.com/danielTobon43/ubuntuExternalHDD/blob/master/examples/ubuntu-installation-05.png?raw=true)
+![9](https://github.com/danielTobon43/ubuntuExternalHDD/blob/master/examples/gparted-05.png?raw=true)
 
-We’re now almost ready to install Ubuntu on this drive. Note first however, that in two attempts at this process, the system volume of the computer I was using for this process (my Windows 10 computer) was modified and left with a dual boot installation, which is NOT what we want (as that would effectively ‘bind’ our external hard drive to this computer). When we install Ubuntu on an external HDD is very important to change the installation of the bootloader to the USB HD. This will most likely be /dev/sdb. This will prevent you from overwriting the master boot record on your hard drive. The remaining steps will show how to correctly install a working GRUB bootloader onto our newly created /dev/sdb1 system fat32 ESP partition.
+We’re now almost ready to install Ubuntu on this drive. However, when we install ubuntu in a system with Windows boot manager, left with a dual boot installation (bootloader into the internal HDD), which is NOT what we want (as that would effectively ‘bind’ our external hard drive to this computer). When we install Ubuntu on an external HDD is very important to change the installation of the bootloader to the USB HD. This will most likely be `/dev/sdb`. This will prevent you from overwriting the master boot record on your hard drive. The remaining steps will show how to correctly install a working GRUB bootloader onto our newly created `/dev/sdb1` system fat32 ESP partition.
 
 ## Configure external HDD/install ubuntu
 With your external target drive all prepared we’re now ready to install Ubuntu. As per the link in the previous section, we’re going to start a normal installation followed by ‘Something else’ when we get to the partition selection step. You should still be booted from your Ubuntu Installation media thumb drive.
@@ -60,13 +67,13 @@ Close GParted and then double click on the Install Ubuntu icon on your desktop. 
 
 ![3](https://github.com/danielTobon43/ubuntuExternalHDD/blob/master/examples/ubuntu-installation-01.png?raw=true)
 
-Now that we’re on the ‘Something else’ installation type screen - scroll down the list of available drive volumes until you see your device and the partitions we previously created. In this example /dev/sdb1, /dev/sdb2, and /dev/sdb3.
+Now that we’re on the ‘Something else’ installation type screen - scroll down the list of available drive volumes until you see your device and the partitions we previously created. In this example `/dev/sdb1`, `/dev/sdb2`, and `/dev/sdb3`.
 
-1.	Double click on the 100MB fat32 system efi partition we created (/dev/sdb1) and choose ‘Use as EFI system partition’ but do not format the partition.
+1.	Double click on the `100MB fat32` system efi partition we created (`/dev/sdb1`) and choose ‘Use as EFI system partition’ but do not format the partition.
 
-2.	Double click on the /dev/sdb2 partition and choose ‘Use as swap area’.
+2.	Double click on the `/dev/sdb2` partition and choose ‘Use as swap area’.
 
-3.	Then double click on the /dev/sdb3 partition - and choose use as 'Ext4 journaling file system’, and set the mount point to / or root, and again do not format this partition.
+3.	Then double click on the `/dev/sdb3` partition - and choose use as 'Ext4 journaling file system’, and set the mount point to `/` or root, and again do not format this partition.
 
 4.	Lastly - select the ‘Device for boot loader installations:’ to the name of the device for your external hard drive (although as noted above, this may not work and you’ll need to follow the remaining steps below). 
 
@@ -98,7 +105,7 @@ type the TAB key in your keyboard to autocomplete the command above or find your
 ls -l /dev/disk/by-uuid
 ```
 
-The number above should be the same with the one in the UUID from the /dev/sdc3 ext4.
+The number above should be the same with the one in the UUID from the `/dev/sdb3 ext4`.
 Now we’ll mount our new Ubuntu installation root volume from our external drive:
 
 ```
@@ -111,11 +118,16 @@ We now need to fixup the UUIDs of the mount points in fstab for our external Ubu
 sudo gedit /mnt/etc/fstab
 ```
 
-Copy and then comment the line with the /boot/efi mount point. In your new line replace the current UUID with the one from above - in this case ED3C-7CB8
+Copy and then comment the line with the `/boot/efi` mount point. In your new line replace the current UUID with the one from above - in this case `7861-4419`. The swap and root /mount points should be pointed to the correct volumes on our external drive.  Save and close the file.
+Now we need to mount our new EFI/ESP system partition - our `100MB fat32` partition on /dev/sdb1
 
-The swap and root /mount points should be pointed to the correct volumes on our external drive.  Save and close the file
 
-Now we need to mount our new EFI/ESP system partition - our 100MB fat32 partition on /dev/sdb1
+-------------------
+
+PIC
+
+-------------------
+
 
 ```
 sudo mount /dev/sdb1 /mnt/boot/efi
@@ -175,11 +187,11 @@ sudo nautilus
 
 4.	Go to the EFI folder from your external HDD drive, normally mounted at /boot/efi in Ubuntu. You should see 2 folders: 1. BOOT, 2. ubuntu.
 
-![10](https://github.com/danielTobon43/ubuntuExternalHDD/blob/master/examples/ubuntu-installation-06.png?raw=true)
+![10](https://github.com/danielTobon43/ubuntuExternalHDD/blob/master/examples/gparted-06.png?raw=true)
 
 The most straightforward solution is to move/rename your boot loader. Ubuntu installs its boot loader as EFI/ubuntu/shimx64.efi and EFI/ubuntu/grubx64.efi on the ESP, which is normally mounted at /boot/efi in Ubuntu. 
 
-5.	Rename **EFI/ubuntu** to **EFI/BOOT** (in case there is not a BOOT folder). You must then rename **shimx64.efi** to **bootx64.efi**. (If your system does not use Secure Boot, you may optionally rename grubx64.efi to bootx64.efi instead of renaming shimx64.efi.)
+5.	Rename **EFI/ubuntu** to **EFI/BOOT** (in case there is not a BOOT folder). You must then rename **shimx64.efi** to **bootx64.efi**. (If your system does not use Secure Boot, you may optionally rename `grubx64.efi` to `bootx64.efi` instead of renaming `shimx64.efi`.)
 
 6.	Close nautilus and all will be done.
 
