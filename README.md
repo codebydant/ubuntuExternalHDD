@@ -23,16 +23,16 @@ For this tutorial we need 2 things:
 
 2.	Plug in your target portable external hard drive.
 
-3.	Start GParted. GParted is the partition manager application we’re going to use to prepare the portable hard drive. Once GParted is started - in the upper right corner, change the target drive to your external portable drive. It’s important that you correctly identify this drive as we’re going to re-partition the drive. In the screenshot below - my external and portable drive is identified as */dev/sdb* - and it is currently unpartitioned. Unmount *(right click and unmount)* any currently mounted partitions on this drive and delete all partitions (again - be double sure you’re working on the correct drive).
+3.	Start GParted. GParted is the partition manager application we’re going to use to prepare the portable hard drive. Once GParted is started - in the upper right corner, change the target drive to your external portable drive. It’s important that you correctly identify this drive as we’re going to re-partition the drive. In the screenshot below - my external and portable drive is identified as `/dev/sdb` - and it is currently unpartitioned. Unmount *(right click and unmount)* any currently mounted partitions on this drive and delete all partitions (again - be double sure you’re working on the correct drive).
 
 ![Start GParted](https://github.com/danielTobon43/ubuntuExternalHDD/blob/master/examples/gparted-01.png?raw=true)
 
 ## Preparing the portable drive
 We’re going to create three new partitions on the target external drive.
 
-1.	Again using GParted, right click on the unallocated volume, choose New, and create a **100MB fat32** partition. Click on the green checkmark to apply the pending operation. Once the partition has been created - right click on the newly created partition and select ‘Manage Flags’. Enable the **boot** and **esp** flags. When we're done, this partition will become the system *‘boot’* partition, and will include EFI information including the GNU GRUB boot loader. In fact, creating this partition as a working boot volume under EFI using GRUB is the heart of our problem in trying to create a truly portable external OS drive, and so there are a few more steps to complete before we can achieve this.
+1.	Again using GParted, right click on the unallocated volume, choose New, and create a `100MB fat32` partition. Click on the green checkmark to apply the pending operation. Once the partition has been created - right click on the newly created partition and select ‘Manage Flags’. Enable the `boot` and `esp` flags. When we're done, this partition will become the system `boot` partition, and will include EFI information including the GNU GRUB boot loader. In fact, creating this partition as a working boot volume under EFI using GRUB is the heart of our problem in trying to create a truly portable external OS drive, and so there are a few more steps to complete before we can achieve this.
 
-2.	Next create an XGB linux-swap partition, see [Linux DiskSpace](https://help.ubuntu.com/community/DiskSpace) for more information. The size of your swap partition may vary and so you’ll need to do a little research to determine the appropriate size for your expected workload. A rule of thumb for modern personal computers with plenty of RAM is to create a `swap partition = 2*the size of available RAM` if you do plan on supporting full hibernate (most computers will still suspend or sleep fine). For this tutorial, I have a 8GB RAM, so I chose `linux-swap partition=17GB` to be sure.
+2.	Next create an XGB `linux-swap` partition, see [Linux DiskSpace](https://help.ubuntu.com/community/DiskSpace) for more information. The size of your swap partition may vary and so you’ll need to do a little research to determine the appropriate size for your expected workload. A rule of thumb for modern personal computers with plenty of RAM is to create a `swap partition = 2*the size of available RAM` if you do plan on supporting full hibernate (most computers will still suspend or sleep fine). For this tutorial, I have a 8GB RAM, so I chose `linux-swap partition=17GB` to be sure.
 
 3.	Finally, create the main or root `/` partition for our target portable drive. Create an ext4 partition of whatever size you require for your system. Apply all pending operations and you should now have a disk partition layout that looks similar to the screenshot below. [Note that in my case I still have about 15.89GB unallocated space as this is a 1TB external drive. 
 
@@ -119,7 +119,7 @@ sudo gedit /mnt/etc/fstab
 ```
 
 Copy and then comment the line with the `/boot/efi` mount point. In your new line replace the current UUID with the one from above - in this case `7861-4419`. The swap and root /mount points should be pointed to the correct volumes on our external drive.  Save and close the file.
-Now we need to mount our new EFI/ESP system partition - our `100MB fat32` partition on /dev/sdb1
+Now we need to mount our new EFI/ESP system partition - our `100MB fat32` partition on `/dev/sdb1`
 
 
 -------------------
@@ -160,7 +160,7 @@ Finally we’ll switch into a chroot environment in our simulated OS on the exte
 sudo chroot /mnt
 ```
 
-And now after all that, we're ready to install Grub. As with all of the instructions above, be sure to change /dev/sdb with your own external drive device identifier.
+And now after all that, we're ready to install Grub. As with all of the instructions above, be sure to change `/dev/sdb` with your own external drive device identifier.
 
 ```
 grub-install -d /usr/lib/grub/x86_64-efi --efi-directory=/boot/efi/ --removable /dev/sdb
@@ -189,9 +189,9 @@ sudo nautilus
 
 ![10](https://github.com/danielTobon43/ubuntuExternalHDD/blob/master/examples/gparted-06.png?raw=true)
 
-The most straightforward solution is to move/rename your boot loader. Ubuntu installs its boot loader as EFI/ubuntu/shimx64.efi and EFI/ubuntu/grubx64.efi on the ESP, which is normally mounted at /boot/efi in Ubuntu. 
+The most straightforward solution is to move/rename your boot loader. Ubuntu installs its boot loader as `EFI/ubuntu/shimx64.efi` and `EFI/ubuntu/grubx64.efi` on the ESP, which is normally mounted at `/boot/efi` in Ubuntu. 
 
-5.	Rename **EFI/ubuntu** to **EFI/BOOT** (in case there is not a BOOT folder). You must then rename **shimx64.efi** to **bootx64.efi**. (If your system does not use Secure Boot, you may optionally rename `grubx64.efi` to `bootx64.efi` instead of renaming `shimx64.efi`.)
+5.	Rename `EFI/ubuntu` to `EFI/BOOT` (in case there is not a BOOT folder). You must then rename `shimx64.efi` to `bootx64.efi`. (If your system does not use Secure Boot, you may optionally rename `grubx64.efi` to `bootx64.efi` instead of renaming `shimx64.efi`.)
 
 6.	Close nautilus and all will be done.
 
