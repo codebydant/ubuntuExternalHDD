@@ -1,5 +1,5 @@
 # Ubuntu to External HDD
-This is a tutorial to install Ubuntu in an external HDD as a portable/bootable-usb. It is based in the post "HOW TO CREATE A TRULY PORTABLE UBUNTU INSTALLATION ON AN EXTERNAL USB HDD OR SSD" at [58Bits article](https://www.58bits.com/blog/2020/02/28/how-create-truly-portable-ubuntu-installation-external-usb-hdd-or-ssd).
+This is a tutorial to install Ubuntu in an external HDD as a portable/bootable-usb. It is based in the post "HOW TO CREATE A TRULY PORTABLE UBUNTU INSTALLATION ON AN EXTERNAL USB HDD OR SSD" at [58Bits article](https://www.58bits.com/blog/2020/02/28/how-create-truly-portable-ubuntu-installation-external-usb-hdd-or-ssd)
 
 ## PC Requirements
 This tutorial is for an UEFI laptop without secureBoot.
